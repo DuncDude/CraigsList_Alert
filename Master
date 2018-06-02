@@ -94,13 +94,13 @@ def runing():
 		#	runing()
 
 def alert(message_item):
-	TO = 'duncdude@gmail.com'
+	TO = 'your email'
 	SUBJECT = 'Craigs List Alert'
 	TEXT = message_item
 
 	# Gmail Sign In
-	gmail_sender = 'duncdude@gmail.com'
-	gmail_passwd = '605029160584822808983'
+	gmail_sender = 'youremail'
+	gmail_passwd = 'yourpassword'
 	
 	server = smtplib.SMTP('smtp.gmail.com', 587)
 	server.ehlo()

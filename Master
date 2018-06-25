@@ -1,9 +1,15 @@
+#CRAIGPULL V5.0
+
 #This is a webscraper designed to look at the newest listing on craigslist free section and send a message to the email of your choice
 #you can change the craigslist page to most anything in "for sale" and it should work
 # in order to send to a gmail account youll have to enable less secure app youll be fine but always be carfull
 import smtplib
 import requests
+import time
+import gc
 #universal place holder of last item
+delay = 0
+counter = 0
 last_item = "nothing"
 this_list =[]
 def startUp():
@@ -15,66 +21,90 @@ def startUp():
         print("        J|/^ ^ ^ \  |    /00  |    _//|")
         print("         |^ ^ ^ ^ |W|   |/^^\ |   /oo |")
         print("          \m___m__|_|    \m_m_|   \mm_|")
-	print("Hello Welcome to Duncan's Craigslist Python Scraper")
-	print("Please put all the keywords you are looking for in all lowercase seperated by spaces")
+	print("-----------------------------------------------------")
+	print("Hello! Welcome to Duncan's Craigslist Python Scraper")
+	print("This program is designed to constantly watch the most recent ad's of the Free section of CraigsList and compare the ad's to set ketwords. When a post has matching keywords an email with the post will be sent to the desired recipient.")
+	global delay
 	global this_list
-	this_list = raw_input("Enter Search terms: ")
+	
+#set delay time and keywords
+	delay = raw_input("Enter the frequency in seconds for checking the CraigsList page (we suggest no less than 5,as not to raise alarms): ")
+        this_list = raw_input("Enter your search terms in all lowercase seperated only by spaces(ie: laptop bike kite kittens) :") 
 	this_list = this_list.split()
+	runing()
    		
 
 
 #main Function
 def runing():
-	global this_list
-	global last_item
-	alert_trigger = 0
-	#Welcome screen and  prompt
-	print("Running Scrape...")
-	#Pulls the current website info
-	page = requests.get("https://raleigh.craigslist.org/d/free-stuff/search/zip")
-	#imports libraries and parse data to readable
-	from bs4 import BeautifulSoup
-	soup = BeautifulSoup(page.content, 'html.parser')
-	
-	#Search html for last Submitted item
-	current_item = (soup.find_all(class_='result-title hdrlnk')[0].get_text())
-	
-	
-	#Removes and case sensitivity/ set place holder to compare
-	current_item = current_item.lower()
+
+	while True:
+#call global varribles
+		global counter
+		global this_list
+		global last_item
+		alert_trigger = 0
+		#Welcome screen and  prompt
+		print("Running Scrape...")
+		#Pulls the current website info with error handlling
+		try:
+			page = requests.get("https://raleigh.craigslist.org/d/free-stuff/search/zip")
+		except requests.exceptions.ConnectionError:
+			print("ERROR: Failed to connect, trying again")
+			runing()
+		except requests.exceptions.Timeout:
+			print("ERROR: Timeout, trying again")
+			runing()
+		#imports libraries and parse data to readable
+		from bs4 import BeautifulSoup
+		soup = BeautifulSoup(page.content, 'html.parser')
+		
+		#delete "page" to save memory
+			
+
+		#Search html for last Submitted item
+		current_item =str(soup.find(class_='result-title hdrlnk').get_text())
+			
+		#Removes and case sensitivity/ set place holder to compare
+		current_item = current_item.lower()
 	
 
 
-	#checks and compares against keyword from "THIS_LIST"
-	if current_item != last_item:
-		#sets alert email back to zero to no send
-	
-		print("NEW ITEM!: " + current_item)
-		for x in this_list:
-			if (current_item.find(x) == -1):
-				print(x + ": No")
-				last_item = current_item
-			else:
-				print(x + ": Yes")
-				last_item = current_item
-				alert_trigger = 1
-	else:
-		print("nothing new")
-
-	if alert_trigger > 0:
-		alert(current_item)
-	else:
-	#Start again
-		runing()
+		#checks and compares against keyword from "THIS_LIST"
+		if current_item != last_item:
+			#sets alert email back to zero to no send
+			print("------------------------------------------------")
+			print("NEW ITEM!: " + current_item)
+			for x in this_list:
+				if (current_item.find(x) == -1):
+					print(x + ": No")
+					last_item = current_item
+				else:
+					print(x + ": Yes")
+					last_item = current_item
+					alert_trigger = 1
+			print("------------------------------------------------")
+		else:
+			print("nothing new ",counter)
+			counter = counter +1
+		if alert_trigger > 0:
+			alert(current_item)
+		else:
+		#Delete and clean up old varibles to avoid memory leaks, and start "runing" function again
+			del soup
+			del page
+			gc.collect()
+			time.sleep(float(delay))
+		#	runing()
 
 def alert(message_item):
-	TO = 'your email here@ gmail.com'
+	TO = 'your@emailhere.com'
 	SUBJECT = 'Craigs List Alert'
 	TEXT = message_item
 
 	# Gmail Sign In
-	gmail_sender = 'your email here@ gmail.com'
-	gmail_passwd = 'your password here'
+	gmail_sender = 'your@emailhere.com'
+	gmail_passwd = 'yourpassword here'
 	
 	server = smtplib.SMTP('smtp.gmail.com', 587)
 	server.ehlo()
@@ -100,6 +130,3 @@ def alert(message_item):
 
 #Start 
 startUp()
-runing()
-#thing = (soup.find(class_='result-title hdrlnk'))
-#print(thing)

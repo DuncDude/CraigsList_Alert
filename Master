@@ -2,7 +2,7 @@
 
 #This is a webscraper designed to look at the newest listing on craigslist free section and send a message to the email of your choice
 #you can change the craigslist page to most anything in "for sale" and it should work
-# in order to send to a gmail account youll have to enable less secure app youll be fine but always be carfull
+# in order to send to a gmail account youll have to enable less secure app, youll be fine but always be carefull
 import smtplib
 import requests
 import time
